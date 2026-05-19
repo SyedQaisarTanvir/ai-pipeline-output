@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Todo App</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 480px;
+            margin: 24px auto;
+            padding: 16px;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .input-field {
+            width: 100%;
+            padding: 8px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .input-field:focus {
+            outline: none;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+        .add-button {
+            background-color: #4CAF50;
+            color: #fff;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .add-button:hover {
+            background-color: #3e8e41;
+        }
+        .todo-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .todo-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        .todo-item:last-child {
+            border-bottom: none;
+        }
+        .todo-item:hover {
+            background-color: #f5f7fa;
+        }
+        .todo-text {
+            flex: 1;
+            padding: 0 16px;
+        }
+        .todo-text.completed {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+        .delete-button {
+            background-color: #fff;
+            color: #666;
+            padding: 8px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .delete-button:hover {
+            background-color: #f5f7fa;
+        }
+        .counter {
+            margin-top: 16px;
+            color: #666;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 24px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Todo List</h1>
+            <button class="add-button" id="add-button">Add</button>
+        </div>
+        <input type="text" id="input-field" class="input-field" placeholder="Enter a task">
+        <ul class="todo-list" id="todo-list"></ul>
+        <p class="counter" id="counter"></p>
+        <p class="empty-state" id="empty-state">No tasks yet. Add one above 👆</p>
+    </div>
+    <script>
+        const inputField = document.getElementById('input-field');
+        const addButton = document.getElementById('add-button');
+        const todoList = document.getElementById('todo-list');
+        const counter = document.getElementById('counter');
+        const emptyState = document.getElementById('empty-state');
+
+        let todos = [];
+        let nextId = 1;
+
+        function loadTodos() {
+            const storedTodos = localStorage.getItem('todos');
+            if (storedTodos) {
+                todos = JSON.parse(storedTodos);
+                nextId = Math.max(...todos.map(todo => todo.id)) + 1;
+                renderTodos();
+            }
+        }
+
+        function saveTodos() {
+            localStorage.setItem('todos', JSON.stringify(todos));
+        }
+
+        function renderTodos() {
+            todoList.innerHTML = '';
+            todos.forEach(todo => {
+                const todoItem = document.createElement('li');
+                todoItem.classList.add('todo-item');
+                todoItem.innerHTML = `
+                    <div class="todo-text ${todo.completed ? 'completed' : ''}">${todo.text}</div>
+                    <button class="delete-button" data-id="${todo.id}">Delete</button>
+                `;
+                todoList.appendChild(todoItem);
+            });
+            updateCounter();
+            updateEmptyState();
+        }
+
+        function updateCounter() {
+            const activeTodos = todos.filter(todo => !todo.completed);
+            counter.textContent = `${activeTodos.length} item${activeTodos.length === 1 ? '' : 's'} left`;
+        }
+
+        function updateEmptyState() {
+            if (todos.length === 0) {
+                emptyState.style.display = 'block';
+            } else {
+                emptyState.style.display = 'none';
+            }
+        }
+
+        function addTodo(text) {
+            const todo = {
+                id: nextId,
+                text: text.trim(),
+                completed: false
+            };
+            todos.push(todo);
+            nextId++;
+            saveTodos();
+            renderTodos();
+            inputField.value = '';
+            inputField.focus();
+        }
+
+        function deleteTodo(id) {
+            todos = todos.filter(todo => todo.id !== id);
+            saveTodos();
+            renderTodos();
+        }
+
+        function toggleCompleted(id) {
+            const todo = todos.find(todo => todo.id === id);
+            if (todo) {
+                todo.completed = !todo.completed;
+                saveTodos();
+                renderTodos();
+            }
+        }
+
+        inputField.addEventListener('keydown', event => {
+            if (event.key === 'Enter') {
+                addTodo(inputField.value);
+            }
+        });
+
+        addButton.addEventListener('click', () => {
+            addTodo(inputField.value);
+        });
+
+        todoList.addEventListener('click', event => {
+            if (event.target.classList.contains('delete-button')) {
+                deleteTodo(parseInt(event.target.dataset.id));
+            } else if (event.target.classList.contains('todo-text')) {
+                toggleCompleted(parseInt(event.target.parentNode.querySelector('.delete-button').dataset.id));
+            }
+        });
+
+        loadTodos();
+        inputField.focus();
+    </script>
+</body>
+</html>
