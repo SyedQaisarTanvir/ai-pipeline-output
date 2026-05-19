@@ -1,0 +1,27 @@
+{
+  "name": "ai-zero-touch-pipeline",
+  "version": "1.0.0",
+  "description": "Zero Human Touch Pipeline — Jira → Build → Test → GitHub → Vercel → QA → Email",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "@octokit/rest": "^21.0.2",
+    "axios": "^1.7.7",
+    "dotenv": "^16.4.5",
+    "execa": "^9.4.0",
+    "fs-extra": "^11.2.0",
+    "groq-sdk": "^0.7.0",
+    "node-cron": "^3.0.3",
+    "playwright": "^1.48.0",
+    "resend": "^4.0.0",
+    "winston": "^3.15.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  }
+}
